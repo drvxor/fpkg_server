@@ -1,0 +1,1 @@
+﻿pub static URL: &str = "localhost:8080";
