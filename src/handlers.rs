@@ -1,12 +1,13 @@
 ﻿use axum::extract::Path;
 use axum::http::StatusCode;
 use tokio::fs;
-use axum::{extract::State, Json};
+use axum::{extract::State};
 use axum::response::IntoResponse;
 use crate::models::{AppState, Package, UploadPayload};
 use axum::http::{header, HeaderMap};
 use axum_typed_multipart::TypedMultipart;
 use tokio::io::AsyncWriteExt;
+use rkyv::{to_bytes, rancor::Error};
 
 pub async fn get_file(
     Path(filename): Path<String>
@@ -22,8 +23,8 @@ pub async fn get_file(
     let mut headers = HeaderMap::new();
     if safe_filename.ends_with(".tar.gz") {
         headers.insert(header::CONTENT_TYPE, "application/gzip".parse().unwrap());
-    } else if safe_filename.ends_with(".json") {
-        headers.insert(header::CONTENT_TYPE, "application/json".parse().unwrap());
+    } else if safe_filename.ends_with(".bin") {
+        headers.insert(header::CONTENT_TYPE, "application/octet-stream".parse().unwrap());
     } else {
         headers.insert(header::CONTENT_TYPE, "application/octet-stream".parse().unwrap());
     }
@@ -31,9 +32,17 @@ pub async fn get_file(
     Ok((headers, bytes))
 }
 
-pub async fn summary(State(state): State<AppState>) -> Json<Vec<Package>> {
+pub async fn summary(State(state): State<AppState>) -> Result<impl IntoResponse, (StatusCode, String)> {
     let packages_guard = state.packages.read().await;
-    Json(packages_guard.clone())
+
+    let bytes = to_bytes::<Error>(&*packages_guard).map_err(|e| {
+        (StatusCode::INTERNAL_SERVER_ERROR, format!("Failed to serialize database: {}", e))
+    })?;
+
+    Ok((
+        [(header::CONTENT_TYPE, "application/octet-stream")],
+        bytes.to_vec(),
+    ))
 }
 
 pub async fn upload_package(
@@ -64,15 +73,15 @@ pub async fn upload_package(
         let mut packages_guard = state.packages.write().await;
         packages_guard.push(new_package);
 
-        let json_data = serde_json::to_string_pretty(&*packages_guard).map_err(|e| {
+        let bytes = to_bytes::<Error>(&*packages_guard).map_err(|e| {
             (StatusCode::INTERNAL_SERVER_ERROR, format!("Failed to serialize database: {}", e))
         })?;
 
-        let mut file = fs::File::create("packages.json").await.map_err(|e| {
+        let mut file = fs::File::create("packages.bin").await.map_err(|e| {
             (StatusCode::INTERNAL_SERVER_ERROR, format!("Failed to open database file: {}", e))
         })?;
 
-        file.write_all(json_data.as_bytes()).await.map_err(|e| {
+        file.write_all(&bytes).await.map_err(|e| {
             (StatusCode::INTERNAL_SERVER_ERROR, format!("Failed to write database file: {}", e))
         })?;
     }

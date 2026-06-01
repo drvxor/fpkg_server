@@ -1,5 +1,4 @@
-﻿use serde::{Deserialize, Serialize};
-use axum_typed_multipart::{FieldData, TryFromMultipart};
+﻿use axum_typed_multipart::{FieldData, TryFromMultipart};
 use tempfile::NamedTempFile;
 use std::sync::Arc;
 use tokio::sync::RwLock;
@@ -12,7 +11,7 @@ pub struct UploadPayload {
     pub file: FieldData<NamedTempFile>,
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone)]
 pub struct Package {
     pub name: String,
     pub file_name: String,
