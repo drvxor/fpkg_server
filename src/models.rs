@@ -9,6 +9,19 @@ pub struct UploadPayload {
     pub version: String,
     pub description: String,
     pub file: FieldData<NamedTempFile>,
+    pub dependencies: Vec<String>,
+    pub source_based: bool,
+    pub binary_based: bool,
+    pub build_cmd: Option<String>
+}
+
+#[derive(TryFromMultipart)]
+pub struct UpdatePayload {
+    pub original_name: String,
+    pub name: Option<String>,
+    pub version: Option<String>,
+    pub description: Option<String>,
+    pub file: Option<FieldData<NamedTempFile>>,
 }
 
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone)]
@@ -17,6 +30,10 @@ pub struct Package {
     pub file_name: String,
     pub version: String,
     pub description: String,
+    pub dependencies: Vec<String>,
+    pub source_based: bool,
+    pub binary_based: bool,
+    pub build_cmd: Option<String>
 }
 
 #[derive(Clone)]

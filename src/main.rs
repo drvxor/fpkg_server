@@ -41,6 +41,11 @@ async fn main() {
             post(handlers::upload_package)
                 .layer(DefaultBodyLimit::max(4 * 1024 * 1024 * 1024))
         )
+        // .route(
+        //     "/update",
+        //     post(handlers::update_package)
+        //         .layer(DefaultBodyLimit::max(4 * 1024 * 1024 * 1024))
+        // )
         .route("/get/{*capture}", get(handlers::get_file))
         .with_state(shared_state);
 
