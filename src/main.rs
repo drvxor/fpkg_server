@@ -36,6 +36,7 @@ async fn main() {
 
     let app = Router::new()
         .route("/summary", get(handlers::summary))
+        .route("/checksum", get(handlers::checksum))
         .route(
             "/upload",
             post(handlers::upload_package)

@@ -9,3 +9,4 @@ tokio = { version = "1.0", features = ["full"] }
 axum_typed_multipart = "0.16.6"
 tempfile = "3.1"
 rkyv = {version = "0.8.16", features = ["default"]}
+blake3 = {version = "1.8.5", features = ["default", "mmap", "rayon"]}

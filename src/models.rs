@@ -33,7 +33,8 @@ pub struct Package {
     pub dependencies: Vec<String>,
     pub source_based: bool,
     pub binary_based: bool,
-    pub build_cmd: Option<String>
+    pub build_cmd: Option<String>,
+    pub manually_installed: bool
 }
 
 #[derive(Clone)]
