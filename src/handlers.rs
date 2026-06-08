@@ -63,8 +63,13 @@ pub async fn checksum(State(state): State<AppState>) -> Result<impl IntoResponse
 
 pub async fn upload_package(
     State(state): State<AppState>,
-    TypedMultipart(form): TypedMultipart<UploadPayload>,
+    headers: HeaderMap,
+    TypedMultipart(form): TypedMultipart<UploadPayload>
 ) -> Result<impl IntoResponse, (StatusCode, String)> {
+
+    if let Some(auth_token) = headers.get("x-fpkg-upload-token") {
+        if auth_token.to_str().unwrap_or("invalid-chars") != state.auth_token {return Ok((StatusCode::FORBIDDEN, "Invalid authentication token!"));}
+    }
 
     tokio::fs::create_dir_all("static").await.map_err(|e| {
         (StatusCode::INTERNAL_SERVER_ERROR, format!("Failed to create static dir: {}", e))
@@ -112,8 +117,13 @@ pub async fn upload_package(
 
 pub async fn update_package(
     State(state): State<AppState>,
-    TypedMultipart(form): TypedMultipart<UpdatePayload>,
+    headers: HeaderMap,
+    TypedMultipart(form): TypedMultipart<UpdatePayload>
 ) -> Result<impl IntoResponse, (StatusCode, String)> {
+
+    if let Some(auth_token) = headers.get("x-fpkg-update-token") {
+        if auth_token.to_str().unwrap_or("invalid-chars") != state.auth_token {return Ok((StatusCode::FORBIDDEN, "Invalid authentication token!"));}
+    }
 
     let mut packages_guard = state.packages.write().await;
 

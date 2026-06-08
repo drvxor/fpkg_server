@@ -40,4 +40,5 @@ pub struct Package {
 #[derive(Clone)]
 pub struct AppState {
     pub packages: Arc<RwLock<Vec<Package>>>,
+    pub auth_token: String
 }
